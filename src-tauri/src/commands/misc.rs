@@ -1444,6 +1444,14 @@ fn extend_existing_child_search_paths(
 fn extend_windows_cli_manager_search_paths(paths: &mut Vec<std::path::PathBuf>, home: &Path) {
     push_env_single_dir(paths, std::env::var_os("PNPM_HOME"));
     push_env_child_dir(paths, std::env::var_os("VOLTA_HOME"), "bin");
+    if let Some(fnm_dir) = std::env::var_os("FNM_DIR") {
+        push_unique_path(
+            paths,
+            std::path::PathBuf::from(fnm_dir)
+                .join("aliases")
+                .join("default"),
+        );
+    }
     push_env_single_dir(paths, std::env::var_os("NVM_SYMLINK"));
     push_env_child_dir(paths, std::env::var_os("SCOOP"), "shims");
     push_env_child_dir(paths, std::env::var_os("SCOOP_GLOBAL"), "shims");
@@ -1455,6 +1463,7 @@ fn extend_windows_cli_manager_search_paths(paths: &mut Vec<std::path::PathBuf>, 
     }
 
     if let Some(appdata) = dirs::data_dir() {
+        push_unique_path(paths, appdata.join("fnm").join("aliases").join("default"));
         let nvm_home = appdata.join("nvm");
         push_unique_path(paths, nvm_home.clone());
         extend_existing_child_search_paths(paths, &nvm_home, None);
@@ -2105,7 +2114,7 @@ fn infer_install_source(path: &Path) -> &'static str {
     // Windows 的 `%LOCALAPPDATA%\Volta\bin` / `%VOLTA_HOME%\bin`(无前导点)。
     } else if s.contains("/.volta/") || s.contains("/volta/") {
         "volta"
-    } else if s.contains("fnm_multishells") {
+    } else if s.contains("fnm_multishells") || s.contains("/fnm/aliases/") {
         "fnm"
     } else if s.contains("/mise/") {
         "mise"
@@ -5621,6 +5630,16 @@ mod tests {
         }
 
         #[test]
+        fn windows_fnm_default_alias_is_recognized() {
+            assert_eq!(
+                infer_install_source(Path::new(
+                    "C:/Users/me/AppData/Roaming/fnm/aliases/default/codex.cmd"
+                )),
+                "fnm"
+            );
+        }
+
+        #[test]
         fn windows_nvm_falls_back_to_system() {
             // nvm-windows 安装的工具路径不含 `.nvm`(它通常装在 `%APPDATA%\nvm` 或
             // `C:\Program Files\nodejs` symlink),刻意不识别成专属 source——锚定层
@@ -6636,6 +6655,17 @@ mod tests {
         );
         // Empty percent pair is not treated as a variable name.
         assert_eq!(expand_env_chars(r"C:\path\%%\tail"), r"C:\path\%%\tail");
+    }
+
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn build_tool_search_paths_includes_fnm_default_alias() {
+        let appdata = dirs::data_dir().expect("APPDATA should resolve");
+        let codex_paths = build_tool_search_paths("codex");
+        assert!(
+            codex_paths.contains(&appdata.join("fnm").join("aliases").join("default")),
+            "Windows discovery should include fnm's stable default alias"
+        );
     }
 
     #[cfg(target_os = "windows")]
