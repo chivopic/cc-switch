@@ -77,7 +77,7 @@ jobs:
               fn windows_fnm_default_alias_is_recognized() {
                   assert_eq!(
                       infer_install_source(Path::new(
-                          r"C:\Users\me\AppData\Roaming\fnm\aliases\default\codex.cmd"
+                          "C:/Users/me/AppData/Roaming/fnm/aliases/default/codex.cmd"
                       )),
                       "fnm"
                   );
