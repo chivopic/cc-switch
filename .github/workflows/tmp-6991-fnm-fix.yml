@@ -35,77 +35,32 @@ jobs:
 
           text = replace_once(
               text,
-              '''    push_env_child_dir(paths, std::env::var_os("VOLTA_HOME"), "bin");
-              push_env_single_dir(paths, std::env::var_os("NVM_SYMLINK"));'''.replace("              ", ""),
-              '''    push_env_child_dir(paths, std::env::var_os("VOLTA_HOME"), "bin");
-              if let Some(fnm_dir) = std::env::var_os("FNM_DIR") {
-                  push_unique_path(
-                      paths,
-                      std::path::PathBuf::from(fnm_dir)
-                          .join("aliases")
-                          .join("default"),
-                  );
-              }
-              push_env_single_dir(paths, std::env::var_os("NVM_SYMLINK"));'''.replace("              ", ""),
+              '    push_env_child_dir(paths, std::env::var_os("VOLTA_HOME"), "bin");\n    push_env_single_dir(paths, std::env::var_os("NVM_SYMLINK"));',
+              '    push_env_child_dir(paths, std::env::var_os("VOLTA_HOME"), "bin");\n    if let Some(fnm_dir) = std::env::var_os("FNM_DIR") {\n        push_unique_path(\n            paths,\n            std::path::PathBuf::from(fnm_dir)\n                .join("aliases")\n                .join("default"),\n        );\n    }\n    push_env_single_dir(paths, std::env::var_os("NVM_SYMLINK"));',
           )
 
           text = replace_once(
               text,
-              '''    if let Some(appdata) = dirs::data_dir() {
-              let nvm_home = appdata.join("nvm");'''.replace("              ", ""),
-              '''    if let Some(appdata) = dirs::data_dir() {
-              push_unique_path(
-                  paths,
-                  appdata.join("fnm").join("aliases").join("default"),
-              );
-              let nvm_home = appdata.join("nvm");'''.replace("              ", ""),
+              '    if let Some(appdata) = dirs::data_dir() {\n        let nvm_home = appdata.join("nvm");',
+              '    if let Some(appdata) = dirs::data_dir() {\n        push_unique_path(\n            paths,\n            appdata.join("fnm").join("aliases").join("default"),\n        );\n        let nvm_home = appdata.join("nvm");',
           )
 
           text = replace_once(
               text,
-              '''    } else if s.contains("fnm_multishells") {
-              "fnm"'''.replace("              ", ""),
-              '''    } else if s.contains("fnm_multishells") || s.contains("/fnm/aliases/") {
-              "fnm"'''.replace("              ", ""),
+              '    } else if s.contains("fnm_multishells") {\n        "fnm"',
+              '    } else if s.contains("fnm_multishells") || s.contains("/fnm/aliases/") {\n        "fnm"',
           )
 
           text = replace_once(
               text,
-              '''        #[test]
-              fn windows_nvm_falls_back_to_system() {'''.replace("              ", ""),
-              '''        #[test]
-              fn windows_fnm_default_alias_is_recognized() {
-                  assert_eq!(
-                      infer_install_source(Path::new(
-                          "C:/Users/me/AppData/Roaming/fnm/aliases/default/codex.cmd"
-                      )),
-                      "fnm"
-                  );
-              }
-
-              #[test]
-              fn windows_nvm_falls_back_to_system() {'''.replace("              ", ""),
+              '        #[test]\n        fn windows_nvm_falls_back_to_system() {',
+              '        #[test]\n        fn windows_fnm_default_alias_is_recognized() {\n            assert_eq!(\n                infer_install_source(Path::new(\n                    "C:/Users/me/AppData/Roaming/fnm/aliases/default/codex.cmd"\n                )),\n                "fnm"\n            );\n        }\n\n        #[test]\n        fn windows_nvm_falls_back_to_system() {',
           )
 
           text = replace_once(
               text,
-              '''    #[cfg(target_os = "windows")]
-              #[test]
-              fn build_tool_search_paths_includes_standalone_installer_dirs() {'''.replace("              ", ""),
-              '''    #[cfg(target_os = "windows")]
-              #[test]
-              fn build_tool_search_paths_includes_fnm_default_alias() {
-                  let appdata = dirs::data_dir().expect("APPDATA should resolve");
-                  let codex_paths = build_tool_search_paths("codex");
-                  assert!(
-                      codex_paths.contains(&appdata.join("fnm").join("aliases").join("default")),
-                      "Windows discovery should include fnm's stable default alias"
-                  );
-              }
-
-              #[cfg(target_os = "windows")]
-              #[test]
-              fn build_tool_search_paths_includes_standalone_installer_dirs() {'''.replace("              ", ""),
+              '    #[cfg(target_os = "windows")]\n    #[test]\n    fn build_tool_search_paths_includes_standalone_installer_dirs() {',
+              '    #[cfg(target_os = "windows")]\n    #[test]\n    fn build_tool_search_paths_includes_fnm_default_alias() {\n        let appdata = dirs::data_dir().expect("APPDATA should resolve");\n        let codex_paths = build_tool_search_paths("codex");\n        assert!(\n            codex_paths.contains(&appdata.join("fnm").join("aliases").join("default")),\n            "Windows discovery should include fnm\'s stable default alias"\n        );\n    }\n\n    #[cfg(target_os = "windows")]\n    #[test]\n    fn build_tool_search_paths_includes_standalone_installer_dirs() {',
           )
 
           path.write_text(text, encoding="utf-8")
